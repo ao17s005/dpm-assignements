@@ -33,19 +33,22 @@ library(stringr)
 
 ```{r}
 
+current_directory <- getwd()
+current_directory
+
 # demographics
-data_demographics_raw <- read_csv("../../../data/AMP study/raw/data_demographics_raw.csv") |>
+data_demographics_raw <- read_csv("../data/raw/data_demographics_raw.csv") |>
   janitor::clean_names()
 
 # data_demographics_raw_messy <- read_csv("../../../data/AMP study/raw/data_demographics_raw_messy.csv", skip = 2) |>
 #   janitor::clean_names()
 
 # self report measure
-data_selfreport_raw <- read_csv("../../../data/AMP study/raw/data_selfreport_raw.csv") |>
+data_selfreport_raw <- read_csv("../data/raw/data_selfreport_raw.csv") |>
   janitor::clean_names()
 
 # affect attribution procedure
-data_amp_raw <- read_csv("../../../data/AMP study/raw/data_amp_raw.csv") |>
+data_amp_raw <- read_csv("../data/raw/data_amp_raw.csv") |>
   janitor::clean_names()
 
 ```
@@ -77,13 +80,40 @@ dat_age_gender <- data_demographics_raw |>
 
 ```{r}
 
+## Week 6 Assignement:
+
+#Create a new data frame under the "Exclusions / data quality" heading. This data frame should take the data_amp_raw object, exclude instructions and practice trials, create a new variable which indicates whether the latency on each trial was problematically low (< 100ms) or not, and then summarizes for each participant what proportion of trials had problematically low latencies. 
+
+#Add an additional full_join() to the "Combine" heading, and join your new exclusions/data quality data frame to the rest of the data. 
+
+#After you've changed processing.Rmd, also add to analysis.Rmd in order to create:
+
+#A table with the proportion of participants who had >10% of AMP trials with problematically low latencies.
+
 data_amp_performance_criteria <- data_amp_raw |> 
   filter(blockcode != "practice", 
          trialcode != "instructions") |> 
-  mutate(latency_prob = if_else(latency < 100, TRUE, FALSE)) |> 
-  group_by(subject) |> 
+  mutate(latency_prob = if_else(latency < 100, TRUE, FALSE)) |> #who was below 100ms?
+  group_by(subject) |> #compare, 
   summarize(proportion_fast_trials_amp = mean(latency_prob)) |>
   mutate(exclude_amp_performance = ifelse(proportion_fast_trials_amp > 0.10, "exclude", "include"))
+
+## Assignement Week 7 
+
+#Add exclusions for the AMP task. It should have the "correct" number of trials. How to know what number is the correct number of trials? Think about how to explore this in your data with code. Write a very brief description of what you tried, what worked or didn't, and what you decided was the correct number of trials as a response to this assignment. 
+
+data_amp_trials <- data_amp_raw |>
+  filter(blockcode != "practice", 
+         trialcode != "instructions") |>
+  group_by(subject) |> 
+  summarize(trials_count = n()) |> 
+  mutate(exclude_amp_trials = ifelse(trials_count != 72, "exclude", "include"))
+  
+data_amp_trials |> 
+  count(subject) # Since the data it is in long format, so subjects are repeated, I 
+#assume that the number of subjects is the number of trials
+  
+
 
 ```
 
@@ -99,6 +129,7 @@ data_selfreport_trial_level <- data_selfreport_raw |>
   filter(response != "Ctrl+'B'") |>
   mutate(response = as.numeric(response))
 
+
 # mean scored
 data_selfreport_mean_score <- data_selfreport_trial_level |>
   group_by(subject) |>
@@ -111,6 +142,18 @@ data_selfreport_scored <-
                           values_from = "response"),
             data_selfreport_mean_score,
             by = "subject")
+  
+
+## Assignement Week 7
+
+#Add exclusions for data completeness for the self reports. i.e., master exclude variable should also be set to "exclude" if they don't have responses for the three individual self report item.
+
+# exclude participants because of incomplete answers
+data_selfreport_scored <- data_selfreport_scored |> 
+  mutate(not_complete_answers = if_else(like < 1 | positive < 1  | prefer < 1 , TRUE, FALSE)) |>
+  mutate(exclude_because_incomplete = if_else(not_complete_answers == TRUE, "exclude", "include"))
+
+
 
 ```
 

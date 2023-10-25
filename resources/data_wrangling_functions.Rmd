@@ -118,7 +118,7 @@ Useful arguments:
 
 ```
 
-## round_half_up
+## round_half_up: in order to have normal rounding we are used to
 
 ```{r}
 
@@ -126,7 +126,8 @@ Useful arguments:
 
 ```
 
-## clean_names
+## clean_names: in order to have clean names
+use it right after loading the data
 
 ```{r}
 
@@ -135,6 +136,8 @@ Useful arguments:
 ```
 
 ## filter
+filter rows according to certain values in certain columns e.g. in like > 4
+!= everything except this rows containing this value
 
 ```{r}
 
@@ -144,7 +147,12 @@ Useful arguments:
 
 ## slice
 
-Slice is for retaining or dropping rows from a df.
+Slice is for retaining or dropping rows from a df. If used with a -, it drops rows
+if used with no minus it keeps rows
+
+also use slice_head or slice tails
+
+remember to put n = how many rows you want to keep or cut
 
 We might use it just after reading in files if there are junk rows at the header.
 
@@ -159,6 +167,8 @@ slice(mtcars, 2:n()) # this should have 31 rows
 
 ## select
 
+select the columns you want
+
 ```{r}
 
 # dplyr::select()
@@ -167,6 +177,7 @@ slice(mtcars, 2:n()) # this should have 31 rows
 
 ## rename
 
+new name = old name
 ```{r}
 
 # dplyr::rename()
@@ -174,6 +185,7 @@ slice(mtcars, 2:n()) # this should have 31 rows
 ```
 
 ## mutate
+create new columns
 
 ```{r}
 
@@ -190,6 +202,8 @@ slice(mtcars, 2:n()) # this should have 31 rows
 ```
 
 ## summarize
+
+summarise() creates a new data frame. It returns one row for each combination of grouping variables; if there are no grouping variables, the output will have a single row summarising all observations in the input. It will contain one column for each grouping variable and one column for each of the summary statistics that you have specified.
 
 ```{r}
 
