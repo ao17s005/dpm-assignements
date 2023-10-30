@@ -263,15 +263,19 @@ summarise() creates a new data frame. It returns one row for each combination of
 
 ```{r}
 
-# dplyr::full_join()
+# dplyr::full_join() # keeps all the unique columns of x and y
 
-# dplyr::left_join()
+# dplyr::left_join() # only unique values from x are kept, the right y columns
+# are not kept
 
-# dplyr::right_join()
+# dplyr::right_join() # only the right x unique columns are kept, the left ones 
+# of the y not
 
 # dplyr::inner_join()
 
-# dplyr::semi_join()
+# dplyr::semi_join() # only the things that are the same of x and y is kept
+
+# anti_join() #nothing is kept from y that also appears in x
 
 ```
 
