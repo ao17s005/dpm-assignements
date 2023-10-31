@@ -119,7 +119,9 @@ data_amp_score <- data_amp_raw |>
 
 ```
 
-
+How could I make a sanaity check: What can this number be? The first one should be before
+the summarize 
+Add it to the exclusions and process data file
 
 
 - One participant with 8 trials appears to be a partial completion (check raw data?)
