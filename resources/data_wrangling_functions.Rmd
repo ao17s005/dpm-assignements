@@ -329,7 +329,82 @@ Other packages you may need for wrangling which aren't covered here:
 
 - library(forcats). Everything to do with factors and factor levels. Useful for plotting and establishing reference levels for statistical tests.
 - library(stringr). Everything to do with strings, searching for strings, modifying strings, parsing them, etc.
-- library(lubridate). Everything to do with dates, parsing dates, converting date formats, etc. 
+- library(lubridate). Everything to do with dates, parsing dates, converting date formats, etc.
+
+
+# ggplot functions
+
+```{r}
+#load packages and data
+library(tidyverse)
+library(patchwork)
+
+current_directory <- getwd()
+current_directory
+dat <- read_csv("../week 8/ldt_data.csv")
+
+#check on the kind of data
+summary(dat)
+str(dat)
+
+#change the kind of data
+dat <- mutate(dat, language = factor(
+  x = language, # column to translate
+  levels = c(1, 2), # values of the original data in preferred order
+  labels = c("monolingual", "bilingual") # labels for display
+))
+
+
+#summarising data
+
+dat %>%
+  group_by(language) %>%
+  count() %>%
+  ungroup()
+
+dat %>%
+  count()
+
+#calculate the mean age (and SD) of the sample 
+age_stats_all <- dat %>%
+  summarise(mean_age = mean(age),
+            sd_age = sd(age),
+            n_values = n())
+# Finally, it uses the function n() to add the number of values used to calculate the statistic in a column named n_values - this is a useful sanity check whenever you make summary statistics.
+
+age_stats_seperate <- dat %>%
+  group_by(language) %>%
+  summarise(mean_age = mean(age),
+            sd_age = sd(age),
+            n_values = n()) %>%
+  ungroup()
+
+#Bar chart of counts
+bar_chart <- ggplot(data = dat, mapping = aes(x = language)) +
+  geom_bar()
+
+bar_chart <- ggplot(data = dat, mapping = aes(x = language)) + 
+  geom_bar(aes(y = (..count..)/sum(..count..))) + 
+  scale_y_continuous(name = "Percent", labels=scales::percent)
+
+dat_percent <- dat %>%    # start with the data in dat
+  count(language) %>%     # count rows per language (makes a new column called n)
+  mutate(percent = (n/sum(n)*100)) # make a new column 'percent' equal to 
+                                   # n divided by the sum of n times 100
+
+
+#layers: plots are built up in a series of layers: plot space, variables specified, type of visualisation (geom), add line, add axis labels, add theme
+
+#aesthetics: aes() --> visual properties
+
+#themes: theme_minimal(); theme_ --> look at the options provided
+
+#facets: create separate plots for each level of a variable, facet_wrap, which factor is faceted, indicate levels with both color and other means, such as facets
+
+
+
+```
+
 
 # Session info
 

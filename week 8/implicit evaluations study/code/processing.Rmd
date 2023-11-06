@@ -73,7 +73,10 @@ dat_age_gender <- data_demographics_raw |>
 
 # Exclusions / data quality
 
-## AMP
+## AMP Exclusion (week 7)
+
+- One participant with 8 trials appears to be a partial completion (check raw data?)
+- One participant with 144 trials appears to be a repeat participant. I've chosen to exclude them entirely, but you could also have a more elaborate strategy where you retain only their first completion.
 
 ```{r}
 
@@ -103,29 +106,31 @@ data_amp_completeness <- data_amp_raw |>
 
 # Score the AMP
 
+Implement at least three "sanity tests" in a copy of the current codeyour week 8. These simply check whether the logic you implemented to calculate the AMP score is correct. Do these sanity checks immediatly after calucating the AMP score in processing.Rmd.
+
+These checks are quite basic tests of what should be the case. Two that I can think of are very simple. One is very slightly more complex, and must be run before you summarize() to create AMP scores. It would assess if your code for assessing prime_congruence is correct.
+
 ```{r}
 
 data_amp_score <- data_amp_raw |> 
   filter(blockcode != "practice",
          trialcode != "instructions") |> 
-  select(subject, trialcode, blockcode, correct) |> 
-  mutate(evaluation = dplyr::case_when(trialcode == "prime_positive" & correct == 1 ~"true", 
-                                       trialcode == "prime_negative" & correct == 0 ~"true",
+  select(subject, trialcode, blockcode, correct, latency) |> 
+  mutate(evaluation = dplyr::case_when(trialcode == "prime_positive" & correct
+                                       == 1 ~"true", 
+                                       trialcode == "prime_negative" & correct
+                                       == 0 ~"true",
                                        .default = "false")) |> 
   group_by(subject) |> 
-  summarize(AMP_score = sum(evaluation == "true")/72)
+  summarize(AMP_score = sum(evaluation == "true")/72,
+             n_values = n()) |> #first sanity check
+  mutate(is_AMP_score_a_proportion = if_else(AMP_score < 1 & AMP_score > 0, TRUE, FALSE)) #second
+  
 
 
 
 ```
 
-How could I make a sanaity check: What can this number be? The first one should be before
-the summarize 
-Add it to the exclusions and process data file
-
-
-- One participant with 8 trials appears to be a partial completion (check raw data?)
-- One participant with 144 trials appears to be a repeat participant. I've chosen to exclude them entirely, but you could also have a more elaborate strategy where you retain only their first completion.
 
 # Self-reports
 
@@ -171,7 +176,8 @@ TODO extract evaluations on the AMP test blocks and convert to an overall bias s
 data_processed_temp <- dat_age_gender |>
   full_join(data_selfreport_scored, by = "subject") |> 
   full_join(data_amp_performance_criteria, by = "subject") |>
-  full_join(data_amp_completeness, by = "subject")
+  full_join(data_amp_completeness, by = "subject") |> 
+  full_join(data_amp_score, by = "subject")
 
 # flag all subjects with more than one row in the wide-format data. these should be excluded in the analysis.
 # a more elaborate approach would be to track down the individual dupicate cases and determine which of the mulitiple cases should be retained. 
@@ -212,7 +218,7 @@ data_processed <- data_processed_before_exclusions |>
 ```{r}
 
 # in case this dir doesn't exist, create it
-dir.create("../data/processed/")
+# dir.create("../data/processed/")
 
 # save data to disk in that dir
 write_csv(data_processed, "../data/processed/data_processed.csv")
