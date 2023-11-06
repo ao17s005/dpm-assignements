@@ -395,7 +395,10 @@ dat_percent <- dat %>%    # start with the data in dat
 
 #layers: plots are built up in a series of layers: plot space, variables specified, type of visualisation (geom), add line, add axis labels, add theme
 
-#aesthetics: aes() --> visual properties
+#aesthetics: aes() --> visual properties, x and y value; fill, colour, shapes, lines, jitter --> when
+# points overlap and you need 
+
+#plot types: bar plots, box plots, scatter plot
 
 #themes: theme_minimal(); theme_ --> look at the options provided
 
