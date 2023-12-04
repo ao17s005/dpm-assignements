@@ -23,8 +23,20 @@ knitr::opts_chunk$set(message = FALSE,
 ```{r}
 
 library(tidyverse)
+library(janitor)
+
 
 ```
+
+# Load Data
+```{r}
+library(readxl)
+data_steca2018 <- read_excel("~/Documents/GitHub/dpm-assignements/Assignments_Meta-Science/plot_assignment/data/data_steca2018.xlsx") |> clean_names()
+View(data_steca2018)
+
+
+```
+
 
 # Instructions
 
@@ -53,6 +65,23 @@ Consider making use of the many extensions to ggplot2, e.g.:
 
 ```{r}
 
+data_steca2018 <- data_steca2018 |> 
+  mutate(sport_success = as.factor(sport_success), sport_type = as.factor(sport_type),
+         sport_specific = as.factor(sport_specific), sport= as.factor(sport)) |> 
+  filter(sport_type != "0")
+
+# sport success = low and high athlete
+# sprot type = team and individual sport type
+
+ggplot(data_steca2018, aes(x = sport_success, y = energy_observed_score, 
+                     shape = sport_type,
+                     group = sport_type,
+                     color = sport_type)) +
+  stat_summary(fun = "mean", geom = "point", size = 3) +
+  stat_summary(fun = "mean", geom = "line") +
+  stat_summary(fun.data = "mean_se", geom = "errorbar", width = .2) +
+  scale_color_manual(values = c("blue", "darkorange", "red")) +
+  theme_classic()
 
 
 ```
@@ -60,6 +89,16 @@ Consider making use of the many extensions to ggplot2, e.g.:
 # Bad plot
 
 ```{r}
+
+ggplot(data_steca2018, aes(x = sport, y = energy_observed_score, 
+                     shape = sport_success,
+                     group = sport_success,
+                     color = sport_success)) +
+  stat_summary(fun = "mean", geom = "point", size = 3) +
+  stat_summary(fun = "mean", geom = "line") +
+  stat_summary(fun.data = "mean_se", geom = "errorbar", width = .2) +
+  scale_color_manual(values = c("blue", "darkorange", "red")) +
+  theme_classic()
 
 
 
