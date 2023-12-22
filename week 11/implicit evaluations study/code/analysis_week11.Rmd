@@ -189,12 +189,27 @@ ggplot(data_processed_after_exclusions, aes(x = AMP_score)) +
 
 # Analyses & hypothesis tests
 
-## Self-reported evaluations are correlated with evaluations on the AMP
+## Cronbach's Alpha AMP
+
+```{r}
+
+library(psych)
+
+alpha(subset(data_processed_after_exclusions, select = c(like, positive, prefer)), check.keys = TRUE)
+
+
+```
+
+## Interpretation
+
+raw alpha is .88, which is considered high and therefore good reliability.
+
+## Hypothesis 1: Self-reported evaluations are correlated with evaluations on the AMP
 
 ### Plot
 
 ```{r}
-
+# self-reported evaluation as dependent variable
 ggplot(data_processed_after_exclusions, 
        aes(x = AMP_score,
            y = mean_evaluation)) +
@@ -206,6 +221,7 @@ ggplot(data_processed_after_exclusions,
   ylab("Mean self-reported evaluation") +
   theme_linedraw() 
 
+# amp score as dependent variable
 ggplot(data_processed_after_exclusions, 
        aes(y = AMP_score,
            x = mean_evaluation)) +
@@ -228,47 +244,56 @@ ggplot(data_processed_after_exclusions,
 
 ```
 
-
-
 More complex plots:
 
 #### Axial hisograms
 
-Scatter plots with axial histograms using ggExtra: https://cran.r-project.org/web/packages/ggExtra/vignettes/ggExtra.html
+Scatter plots with axial histograms using ggExtra: <https://cran.r-project.org/web/packages/ggExtra/vignettes/ggExtra.html>
 
 \TODO add axial histograms to a scatter plot. Split both the scatter plot and the histograms by gender.
 
 ```{r}
 library(ggExtra)
-
-p <- ggplot(data_processed_after_exclusions, 
+library(scales) #for viridis 
+# histogram by gender
+histogram <- ggplot(data_processed_after_exclusions, 
        aes(x = AMP_score,
            y = mean_evaluation, colour = gender)) +
   geom_point() +
-  scale_colour_discrete(name = "gender",
-                      labels = c("male", "female", "non-binary"))
+  geom_smooth(aes(color = gender), method = "lm", se = FALSE) +  # Regression line by gender 
+  scale_colour_manual(name = "gender",
+                         values = c("female" = "#73D055FF", "male" = "#404788FF", "nonbinary" = "#FDE725FF")) +
+  theme(legend.position = c(.15, .7), legend.background = element_rect(color = "black",
+                                                                       size = 0.5)) +
+  labs(x = "Self-report Evaluations", y = "AMP Score",
+title ="Relationship")
 
-ggMarginal(p, type = "histogram", groupColour = TRUE, groupFill = TRUE)
+ggMarginal(histogram, type = "histogram", groupColour = TRUE, groupFill = TRUE)
 
-
-p <- ggplot(data_processed_after_exclusions, 
+# density plot by gender
+density <- ggplot(data_processed_after_exclusions, 
        aes(x = mean_evaluation ,
            y = AMP_score, colour = gender)) +
   geom_point() +
-  scale_colour_discrete(name = "gender",
-                      labels = c("male", "female", "non-binary"))
+  geom_smooth(aes(color = gender), method = "lm", se = FALSE) +  # Regression line by gender 
+  scale_colour_manual(name = "gender", labels = c("Female", "Male", "Non-binary"),
+                         values = c("female" = "#73D055FF", "male" = "#404788FF", "nonbinary" = "#FDE725FF")) +
+  theme(legend.position = c(.2, .20), legend.background = element_rect(color = "black",
+                                                                       size = 0.5))
 
-ggMarginal(p, type = "density", groupColour = TRUE, groupFill = TRUE)
+ggMarginal(density, type = "density", groupColour = TRUE, groupFill = TRUE)
 
 ```
 
 #### Labelled points
 
-Label points using ggrepel: https://cran.r-project.org/web/packages/ggrepel/vignettes/ggrepel.html
+Label points using ggrepel: <https://cran.r-project.org/web/packages/ggrepel/vignettes/ggrepel.html>
 
 \TODO Label the points in a scatter plot using their participant codes.
 
 ```{r}
+
+#label all points
 
 library(ggrepel)
 
@@ -277,19 +302,23 @@ p <- ggplot(data_processed_after_exclusions,
            y = mean_evaluation, label = subject)) +
   geom_jitter(color = "red") 
   
-
 p1 <- p + geom_text() + labs(title = "geom_text()")
-
 p2 <- p + geom_text_repel() + labs(title = "geom_text_repel()")
 
 gridExtra::grid.arrange(p1, p2, ncol = 2)
+
+
+#only labeling outliers
+
+
+
 
 
 ```
 
 #### Magnify areas
 
-Magnify areas of your plot with ggmagnify: https://hughjonesd.github.io/ggmagnify/
+Magnify areas of your plot with ggmagnify: <https://hughjonesd.github.io/ggmagnify/>
 
 \TODO Magnify an area of one of your scatter plots, eg where there are a lot of data points in a small area.
 
@@ -316,11 +345,25 @@ ggpi + geom_magnify(from = from, to = to, colour = "black", linewidth = 0.7, pro
 
 
 
+
 ```
 
 ### Test
 
-\TODO 
+\TODO
+
+```{r}
+
+correlation_H1 <- cor.test(data_processed_after_exclusions$mean_evaluation,
+                      data_processed_after_exclusions$AMP_score,
+                      method = "pearson")
+correlation_H1
+
+```
+
+### Interpretation
+
+The pearson correlation yields a value of -0.124
 
 ## Self-reported evalautions differ between men and women
 
@@ -400,7 +443,7 @@ ggplot(data_processed_after_exclusions, aes(x = "", y = mean_evaluation, fill = 
 
 ### Test
 
-\TODO 
+\TODO
 
 ```{r}
 
@@ -454,7 +497,7 @@ p2 <- ggplot(data_processed_after_exclusions, aes(x = "", y = AMP_score, fill = 
 
 ### Test
 
-\TODO 
+\TODO
 
 ```{r}
 
@@ -471,7 +514,7 @@ t.test(data_processed_after_exclusions$AMP_score ~ data_processed_after_exclusio
 
 ## Combining plots
 
-Combine plots using patchwork: https://patchwork.data-imaginist.com/
+Combine plots using patchwork: <https://patchwork.data-imaginist.com/>
 
 \TODO Combine at least three of the above plots into one.
 
@@ -510,6 +553,3 @@ ggsave("combined_plot.png", plot = last_plot(),dpi = 300)
 sessionInfo()
 
 ```
-
-
-
