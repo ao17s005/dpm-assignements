@@ -1,0 +1,431 @@
+---
+title: "analysis"
+author: "Angela Oppenberg"
+date: "2023-12-22"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+# Analysis
+
+# Dependencies
+
+```{r}
+
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+library(janitor)
+library(scales)
+
+```
+
+# Data
+
+Load the processed data and apply the global exclusions.
+
+```{r}
+
+data_processed <- read_csv("../../data/processed/data_processed.csv")
+
+# Exclude participants using the master exclusion variable.
+data_processed_after_exclusion <- data_processed |>
+  filter(exclude_participant == "include")
+
+```
+
+# Sample descriptives
+
+## Sample size before exclusions
+
+```{r}
+
+# Create a table with the total number of participants before exclusions.
+
+data_processed |>
+  count(name = "n") |>
+  kable() |>
+  add_header_above(header = c("Whole sample" = 1)) |> 
+  kable_classic(full_width = FALSE)
+
+```
+
+## Sample size after exclusions
+
+Sample used in subsequent analyses
+
+```{r}
+
+# Create a table with the total number of participants after exclusions.
+data_processed_after_exclusion |>
+  count(name = "n") |>
+  kable() |>
+  add_header_above(header = c("For analysis" = 1)) |>
+  kable_classic(full_width = FALSE)
+
+```
+
+# Demographics
+
+-   Create demographics tables that summarise the mean and SD age, and the frequency and percentage of men vs women in the sample. Report the proportion of participants for which each demographics variable was available.
+
+### Age
+
+```{r}
+
+data_processed_after_exclusions |>
+  mutate(age = as.numeric(age)) |>
+  summarise(Mean = mean(age, na.rm = TRUE),
+            SD = sd(age, na.rm = TRUE)) |>
+  mutate_all(.funs = janitor::round_half_up, digits = 1) |>
+  kable() |>
+  add_header_above(header = c("Age" = 2)) |>
+  kable_classic(full_width = FALSE)
+
+```
+
+### Sex
+
+```{r}
+
+data_processed_after_exclusions |> 
+  group_by(sex) |> 
+  summarise(n = n()) |> 
+  mutate(Percent = paste0(round_half_up((n / sum(n)) * 100, 1), "%")) |>
+  mutate(sex = stringr::str_to_sentence(sex)) |> 
+  kable() |>
+  kable_classic(full_width = FALSE)
+
+```
+
+# 
+
+# Descriptives
+
+Descriptive statistics and plots of the measures (excluding the demographics variables)
+
+## Rel BFI
+
+-   Calculate Cronbach's alpha for each of the BFI subscales.
+
+```{r}
+
+library(psych)
+
+# Agreeableness: raw_alpha .79 is rated as good rel.
+alpha(subset(data_processed_after_exclusions, select = c(bfi_a1, bfi_a2, bfi_a3, bfi_a4, 
+                                                         bfi_a5, bfi_a6, bfi_a7, bfi_a8,
+                                                         bfi_a9)), check.keys = TRUE)
+
+# Conscientiousness: raw_alpha .82 is rated as good rel.
+alpha(subset(data_processed_after_exclusions, select = c(bfi_c1, bfi_c2, bfi_c3, bfi_c4, 
+                                                         bfi_c5, bfi_c6, bfi_c7, bfi_c8,
+                                                         bfi_c9)), check.keys = TRUE)
+
+
+# Extraversion: raw_alpha .82 is rated as good rel.
+alpha(subset(data_processed_after_exclusions, select = c(bfi_e1, bfi_e2, bfi_e3, bfi_e4, 
+                                                         bfi_e5, bfi_e6, bfi_e7, bfi_e8)), 
+      check.keys = TRUE)
+
+
+# Neuroticism: raw_alpha .80 is rated as good rel.
+alpha(subset(data_processed_after_exclusions, select = c(bfi_n1, bfi_n2, bfi_n3, bfi_n4, 
+                                                         bfi_n5, bfi_n6, bfi_n7, bfi_n8)), 
+      check.keys = TRUE)
+
+
+# Opennes: raw_alpha .78 is rated as good rel.
+alpha(subset(data_processed_after_exclusions, select = c(bfi_o1, bfi_o2, bfi_o3, bfi_o4, 
+                                                         bfi_o5, bfi_o6, bfi_o7, bfi_o8,
+                                                         bfi_o9, bfi_o10)), check.keys = TRUE)
+```
+
+## Histogramm BFI
+
+-   Create series of histograms of the distribution of scores on each of the BFI subscales.
+
+```{r}
+# agreeableness
+ggplot(data_processed_after_exclusion, aes(x = mean_bfi_a)) +
+  geom_histogram(binwidth = 1,
+                 fill = "mistyrose", 
+                 colour = "coral3") +
+  scale_y_continuous(name = "Number of participants",
+                     breaks = c(0,1000, 2000, 3000, 4000)) +
+  scale_x_continuous(name = "Agreeableness (likert-scale)",
+                     breaks = c(1,2, 3, 4, 5, 6)) +
+  theme_dark()
+
+# conscientiousness
+ggplot(data_processed_after_exclusion, aes(x = mean_bfi_c)) +
+  geom_histogram(binwidth = 1,
+                 fill = "skyblue", 
+                 colour = "pink3") +
+  scale_y_continuous(name = "Number of participants",
+                     breaks = c(0,1000, 2000, 3000, 4000)) +
+  scale_x_continuous(name = "Conscientiousness (likert-scale)",
+                     breaks = c(1,2, 3, 4, 5, 6)) +
+  theme_dark()
+
+# extraversion
+ggplot(data_processed_after_exclusion, aes(x = mean_bfi_e)) +
+  geom_histogram(binwidth = 1,
+                 fill = "plum3", 
+                 colour = "mistyrose") +
+  scale_y_continuous(name = "Number of participants",
+                     breaks = c(0,1000, 2000, 3000, 4000)) +
+  scale_x_continuous(name = "Extraversion (likert-scale)",
+                     breaks = c(1,2, 3, 4, 5, 6)) +
+  theme_dark()
+
+# neuroticism
+ggplot(data_processed_after_exclusion, aes(x = mean_bfi_n)) +
+  geom_histogram(binwidth = 1,
+                 fill = "skyblue3", 
+                 colour = "coral3") +
+  scale_y_continuous(name = "Number of participants",
+                     breaks = c(0,1000, 2000, 3000, 4000)) +
+  scale_x_continuous(name = "Neuroticism (likert-scale)",
+                     breaks = c(1,2, 3, 4, 5, 6)) +
+  theme_dark()
+
+# opennes
+ggplot(data_processed_after_exclusion, aes(x = mean_bfi_o)) +
+  geom_histogram(binwidth = 1,
+                 fill = "skyblue2", 
+                 colour = "mistyrose") +
+  scale_y_continuous(name = "Number of participants",
+                     breaks = c(0,1000, 2000, 3000, 4000)) +
+  scale_x_continuous(name = "Opennes (likert-scale)",
+                     breaks = c(1,2, 3, 4, 5, 6)) +
+  theme_dark()
+
+```
+
+-   
+
+## Histogramm IAT
+
+-   Create series of histograms of the distribution of scores on the IAT
+
+```{r}
+
+# iat
+ggplot(data_processed_after_exclusion, aes(x = D)) +
+  geom_histogram(binwidth = 0.1,
+                 fill = "darkblue", 
+                 colour = "mistyrose") +
+  scale_y_continuous(name = "Number of participants",
+                     breaks = c(0,1000, 2000, 3000, 4000)) +
+  scale_x_continuous(name = "D Score ",
+                     breaks = c(-1,-.75, -0.5, -0.25, 0, 0.25)) +
+  theme_dark()
+
+
+```
+
+## Correlation matrix
+
+-   Create a table with a correlation matrix of the Pearson's r correlations between the IAT and the BFI subscales rounded to two decimal places.
+
+```{r}
+
+```
+
+# Inferential
+
+## t-test
+
+-   Run a t-test to test the hypothesis that men and women differ on their scores on the IAT.
+-   Report and interpret the results using {report}.
+
+```{r}
+
+library(stats)
+library(report)
+library(performance)
+
+t_test <- t.test(data_processed_after_exclusions$D ~ data_processed_after_exclusions$sex, var.equal= TRUE, alternative= "two.sided")
+
+report_effectsize(t_test)
+
+report_table(t_test)
+
+
+#sig.: men and women differ significantly on the IAT D-Score with t = 8.5, df = 17638 and p < 0.001 
+#but the effectisize is considered small according to Cohen's d
+
+```
+
+## Regressions
+
+-   Run a series of regressions to test the hypotheses that each BFI subscale predicts IAT scores. Run separate regressions for each subscale rather than a multiple regression. Report and interpret the results using {report}.
+
+```{r}
+
+
+# Agreeableness predicts IAT
+iat_bfi_a <- lm(D ~ mean_bfi_a, data= data_processed_after_exclusion)
+summary(iat_bfi_a)
+
+# Conscientiousness predicts IAT
+iat_bfi_c <- lm(D ~ mean_bfi_c, data= data_processed_after_exclusion)
+summary(iat_bfi_c)
+
+
+# Extraversion predicts IAT
+iat_bfi_e <- lm(D ~ mean_bfi_e, data= data_processed_after_exclusion)
+summary(iat_bfi_e)
+
+
+# Neuroticism predicts IAT
+iat_bfi_n <- lm(D ~ mean_bfi_n, data= data_processed_after_exclusion)
+summary(iat_bfi_n)
+
+
+# Opennes predicts IAT
+iat_bfi_o <- lm(D ~ mean_bfi_o, data= data_processed_after_exclusion)
+summary(iat_bfi_o)
+
+
+report_effectsize(iat_bfi_o)
+
+
+
+```
+
+## Scatter plots
+
+-   Create series of scatter plots of how BFI subscale scores predict IAT scores. Add regression lines. These plots therefore illustrate the same results as the regressions above.
+    -   Make the plots presentable and publication quality- you may decide the details of this with one exception:
+        -   Extreme scores on the IAT (defined as participants whose scores in the top and bottom 10% of IAT scores) should use a triangular shape rather than a dot.
+    -   A single combined plot should be created, containing 5 component plots, with the personality facet being examined in each clearly labelled.
+-   Combine these scatter plots into one ggplot object using {patchwork} and print the combined plot in your .Rmd and .html. Save the combined plot to disk as a .pdf and .png in the "communications" folder.
+
+```{r}
+
+# agreeableness
+plot_a <- ggplot(data_processed_after_exclusion , aes(x = mean_bfi_a, y = D, colour = sex)) +
+  geom_point() +
+   geom_smooth(method = "lm") +
+  scale_fill_viridis_d() +
+  scale_y_continuous(name = "D-Score ",
+                     breaks = c(-2, -1, 0, 1, 2), limits = c(-2,2)) +
+  scale_x_continuous(name = "Agreeableness (likert-scale)",
+                     breaks = c(1,2, 3, 4, 5, 6), limits = c(1,6)) +
+  coord_cartesian(xlim = c(1,6), ylim = c(-1,1)) +
+  theme_grey() +
+  labs(title = "Regression IAT on Agreeableness",
+          subtitle = "") +
+  theme(legend.position = "top", legend.background = element_rect(color = "black",
+                                                                       size = 0.25)) 
+
+
+# conscientiousness
+plot_c <-ggplot(data_processed_after_exclusion , aes(x = mean_bfi_c, y = D, colour = sex)) +
+  geom_point() +
+   geom_smooth(method = "lm") +
+  scale_fill_viridis_d() +
+  scale_y_continuous(name = "D-Score ",
+                     breaks = c(-2, -1, 0, 1, 2), limits = c(-2,2)) +
+  scale_x_continuous(name = "Conscientiousness (likert-scale)",
+                     breaks = c(1,2, 3, 4, 5, 6), limits = c(1,6)) +
+  coord_cartesian(xlim = c(1,6), ylim = c(-1,1)) +
+  theme_grey() +
+  labs(title = "Regression IAT on Conscientiousness",
+          subtitle = "") +
+  theme(legend.position = "top", legend.background = element_rect(color = "black",
+                                                                       size = 0.5)) 
+
+
+# Extraversion
+plot_e <- ggplot(data_processed_after_exclusion , aes(x = mean_bfi_e, y = D, colour = sex)) +
+  geom_point() +
+   geom_smooth(method = "lm") +
+  scale_fill_viridis_d() +
+  scale_y_continuous(name = "D-Score ",
+                     breaks = c(-2, -1, 0, 1, 2), limits = c(-2,2)) +
+  scale_x_continuous(name = "Extraversion (likert-scale)",
+                     breaks = c(1,2, 3, 4, 5, 6), limits = c(1,6)) +
+  coord_cartesian(xlim = c(1,6), ylim = c(-1,1)) +
+  theme_grey() +
+  labs(title = "Regression IAT on Extraversion",
+          subtitle = "") +
+  theme(legend.position = "top", legend.background = element_rect(color = "black",
+                                                                       size = 0.5)) 
+
+
+# Neuroticism
+plot_n <- ggplot(data_processed_after_exclusion , aes(x = mean_bfi_n, y = D, colour = sex)) +
+  geom_point() +
+   geom_smooth(method = "lm") +
+  scale_fill_viridis_d() +
+  scale_y_continuous(name = "D-Score ",
+                     breaks = c(-2, -1, 0, 1, 2), limits = c(-2,2)) +
+  scale_x_continuous(name = "Neuroticism (likert-scale)",
+                     breaks = c(1,2, 3, 4, 5, 6), limits = c(1,6)) +
+  coord_cartesian(xlim = c(1,6), ylim = c(-1,1)) +
+  theme_grey() +
+  labs(title = "Regression IAT on Neuroticism",
+          subtitle = "") +
+  theme(legend.position = "top", legend.background = element_rect(color = "black",
+                                                                       size = 0.5)) 
+
+
+
+# Opennes
+plot_o <- ggplot(data_processed_after_exclusion , aes(x = mean_bfi_o, y = D, colour = sex)) +
+  geom_point() +
+   geom_smooth(method = "lm") +
+  scale_fill_viridis_d() +
+  scale_y_continuous(name = "D-Score ",
+                     breaks = c(-2, -1, 0, 1, 2), limits = c(-2,2)) +
+  scale_x_continuous(name = "Opennes (likert-scale)",
+                     breaks = c(1,2, 3, 4, 5, 6), limits = c(1,6)) +
+  coord_cartesian(xlim = c(1,6), ylim = c(-1,1)) +
+  theme_grey() +
+  labs(title = "Regression IAT on Opennes",
+          subtitle = "") +
+  theme(legend.position = "top", legend.background = element_rect(color = "black",
+                                                                       size = 0.5)) 
+library(patchwork)
+(plot_a + plot_c) / (plot_e + plot_n) / plot_o
+
+```
+
+## Saving plots
+
+-   This plot should be printed in the html file but also saved to disk as both png/pdf.\TODO Save the above combined plot to disk as both .png and .pdf. Ensure the png has at least 300dpi resolution.
+
+```{r}
+
+ggsave("combined_plot.pdf", plot = last_plot(), dpi = 300)
+
+
+```
+
+# 
