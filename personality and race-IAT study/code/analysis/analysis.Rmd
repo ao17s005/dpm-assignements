@@ -215,14 +215,15 @@ ggplot(data_processed_after_exclusion, aes(x = mean_bfi_n)) +
 
 # opennes
 ggplot(data_processed_after_exclusion, aes(x = mean_bfi_o)) +
-  geom_histogram(binwidth = 1,
-                 fill = "skyblue2", 
-                 colour = "mistyrose") +
+  geom_histogram(binwidth = 1, pad = TRUE, fill = "wheat", 
+                 colour = "coral3") +
   scale_y_continuous(name = "Number of participants",
                      breaks = c(0,1000, 2000, 3000, 4000)) +
   scale_x_continuous(name = "Opennes (likert-scale)",
                      breaks = c(1,2, 3, 4, 5, 6)) +
-  theme_dark()
+  scale_fill_viridis_d(option= "A") +
+  scale_colour_viridis_d(option= "A") +
+  theme_minimal()
 
 ```
 
@@ -243,7 +244,7 @@ ggplot(data_processed_after_exclusion, aes(x = D)) +
                      breaks = c(0,1000, 2000, 3000, 4000)) +
   scale_x_continuous(name = "D Score ",
                      breaks = c(-1,-.75, -0.5, -0.25, 0, 0.25)) +
-  theme_dark()
+  theme_minimal()
 
 
 ```
